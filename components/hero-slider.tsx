@@ -65,7 +65,7 @@ export default function HeroSlider() {
 
   return (
     <div
-      className="relative h-[400px] sm:h-[500px] md:h-[600px] lg:h-[700px] w-full overflow-hidden rounded-xl shadow-2xl"
+      className="relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[550px] w-full overflow-hidden rounded-xl shadow-2xl"
       onMouseEnter={pauseAutoPlay}
       onMouseLeave={resumeAutoPlay}
     >
