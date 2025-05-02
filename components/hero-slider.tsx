@@ -26,7 +26,7 @@ const slides = [
       "Descubre artículos informativos, consejos prácticos y muchos temas relevantes sobre Propiedad Horizontal.",
     cta: "Ir al Blog",
     ctaLink: "/blog",
-    image: "/r2.jpg",
+    image: "/sombrio.jpg",
   },
   {
     id: 3,
