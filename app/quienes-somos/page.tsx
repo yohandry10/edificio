@@ -5,7 +5,6 @@ import { motion, useScroll, useTransform } from "framer-motion"
 import { Building, Target, Shield, Heart, Award } from "lucide-react"
 import { useRef } from "react"
 
-/* Animación genérica para las tarjetas */
 const cardVariants = {
   offscreen: { y: 50, opacity: 0 },
   onscreen: {
@@ -18,20 +17,20 @@ const cardVariants = {
 export default function QuienesSomos() {
   const heroRef = useRef(null)
 
-  /*  Sutil parallax de la imagen  */
+  // Parallax suave
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start end", "end start"],
   })
   const imageY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"])
 
-  /* ----------  RETURN  ---------- */
   return (
     <main className="overflow-x-hidden">
       {/* ---------- HERO ---------- */}
       <section
         ref={heroRef}
-        className="relative bg-white pt-20 sm:pt-24 md:pt-32 pb-10 lg:pb-20"
+        /*                  ⬇⬇⬇⬇⬇  ESTE ES EL CAMBIO CLAVE  ⬇⬇⬇⬇⬇ */
+        className="relative bg-white pt-[96px] sm:pt-[110px] md:pt-[128px] pb-10 lg:pb-20"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col-reverse md:grid md:grid-cols-2 md:items-center gap-10">
