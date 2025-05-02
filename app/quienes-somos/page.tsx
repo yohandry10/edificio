@@ -32,7 +32,7 @@ export default function QuienesSomos() {
   return (
     <div className="overflow-x-hidden">
       {/* Hero Section - Nuevo Layout y Estilo */}
-      <section ref={heroRef} className="relative bg-white pt-16 sm:pt-20 md:pt-24 lg:pt-32 pb-12 sm:pb-16 md:pb-20 lg:pb-24 overflow-hidden">
+      <section ref={heroRef} className="relative bg-white pt-32 sm:pt-20 md:pt-24 lg:pt-32 pb-12 sm:pb-16 md:pb-20 lg:pb-24 overflow-hidden">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-center">
             {/* Columna de Texto */}
@@ -40,7 +40,7 @@ export default function QuienesSomos() {
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="text-center md:text-left mt-20 sm:mt-0"
+              className="text-center md:text-left mt-32 sm:mt-0"
             >
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
                 Somos <span className="text-green-600">Casa Grande</span>,
