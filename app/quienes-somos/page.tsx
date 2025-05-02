@@ -5,6 +5,7 @@ import { motion, useScroll, useTransform } from "framer-motion"
 import { Building, Target, Shield, Heart, Award } from "lucide-react"
 import { useRef } from "react"
 
+/* Animación reutilizable */
 const cardVariants = {
   offscreen: { y: 50, opacity: 0 },
   onscreen: {
@@ -17,7 +18,7 @@ const cardVariants = {
 export default function QuienesSomos() {
   const heroRef = useRef(null)
 
-  // Parallax suave
+  /* Parallax sutil de la imagen */
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start end", "end start"],
@@ -29,8 +30,7 @@ export default function QuienesSomos() {
       {/* ---------- HERO ---------- */}
       <section
         ref={heroRef}
-        /*                  ⬇⬇⬇⬇⬇  ESTE ES EL CAMBIO CLAVE  ⬇⬇⬇⬇⬇ */
-        className="relative bg-white pt-[96px] sm:pt-[110px] md:pt-[128px] pb-10 lg:pb-20"
+        className="relative bg-white pt-20 pb-10 lg:pb-20"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col-reverse md:grid md:grid-cols-2 md:items-center gap-10">
@@ -66,10 +66,7 @@ export default function QuienesSomos() {
             >
               <h1 className="font-extrabold leading-tight text-gray-900 text-3xl sm:text-4xl md:text-5xl">
                 Somos <span className="text-green-600">Casa&nbsp;Grande</span>,
-                <span className="block md:inline">
-                  {" "}
-                  expertos en crear comunidades.
-                </span>
+                <span className="block md:inline"> expertos en crear comunidades.</span>
               </h1>
 
               <p className="mt-4 text-gray-700 text-base sm:text-lg">
@@ -154,8 +151,7 @@ export default function QuienesSomos() {
               Nuestros Valores Fundamentales
             </h2>
             <p className="mx-auto max-w-2xl text-base sm:text-lg text-gray-600">
-              Integridad, compromiso y excelencia guían cada una de nuestras
-              acciones.
+              Integridad, compromiso y excelencia guían cada una de nuestras acciones.
             </p>
           </motion.div>
 
@@ -172,12 +168,9 @@ export default function QuienesSomos() {
                 <Shield size={32} />
               </div>
               <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                  Integridad
-                </h3>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">Integridad</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  Actuamos con honestidad, transparencia y ética, generando
-                  confianza y credibilidad.
+                  Actuamos con honestidad, transparencia y ética, generando confianza y credibilidad.
                 </p>
               </div>
             </motion.div>
@@ -194,13 +187,10 @@ export default function QuienesSomos() {
                 <Heart size={32} />
               </div>
               <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                  Compromiso
-                </h3>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">Compromiso</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  Nos dedicamos plenamente a satisfacer las necesidades de
-                  nuestros clientes, asumiendo la responsabilidad de brindar un
-                  servicio de excelencia.
+                  Nos dedicamos plenamente a satisfacer las necesidades de nuestros clientes,
+                  asumiendo la responsabilidad de brindar un servicio de excelencia.
                 </p>
               </div>
             </motion.div>
@@ -217,12 +207,10 @@ export default function QuienesSomos() {
                 <Award size={32} />
               </div>
               <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-                  Excelencia
-                </h3>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">Excelencia</h3>
                 <p className="text-gray-600 text-lg leading-relaxed">
-                  Buscamos la mejora continua y la innovación para ofrecer
-                  soluciones de alta calidad que superen las expectativas.
+                  Buscamos la mejora continua y la innovación para ofrecer soluciones de alta calidad
+                  que superen las expectativas.
                 </p>
               </div>
             </motion.div>
