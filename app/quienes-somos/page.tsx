@@ -40,7 +40,7 @@ export default function QuienesSomos() {
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="text-center md:text-left"
+              className="text-center md:text-left mt-20 sm:mt-0"
             >
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
                 Somos <span className="text-green-600">Casa Grande</span>,
