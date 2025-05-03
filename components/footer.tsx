@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react"
+import { Facebook, Instagram, Mail, MapPin, Phone, Globe } from "lucide-react"
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -57,19 +57,35 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-4">Contacto</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Información de Contacto</h3>
             <ul className="space-y-3">
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
-                <span className="text-gray-600">Av. Dos de Mayo 516, Ofic. 201, Miraflores</span>
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Dirección:</h4>
+                  <p className="text-gray-600">Av. Dos de Mayo 516, Ofic. 201, Miraflores</p>
+                </div>
               </li>
-              <li className="flex items-center">
-                <Phone className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-gray-600">Central: 01 739 7599</span>
+              <li className="flex items-start">
+                <Phone className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Teléfono:</h4>
+                  <p className="text-gray-600">+51 986 102 632</p>
+                </div>
               </li>
-              <li className="flex items-center">
-                <Mail className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-gray-600">cotizacion@administracionedificosperu.com</span>
+              <li className="flex items-start">
+                <Mail className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Correo electrónico:</h4>
+                  <p className="text-gray-600">cotizacion@administracionedificosperu.com</p>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <Globe className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900">Web:</h4>
+                  <p className="text-gray-600">administracionedificosperu.com</p>
+                </div>
               </li>
             </ul>
           </div>
