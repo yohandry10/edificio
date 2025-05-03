@@ -115,7 +115,7 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Teléfono:</h3>
-                    <p className="text-gray-700">+51 986 102 632</p>
+                    <p className="text-gray-700">01 739 7599</p>
                   </div>
                 </div>
 

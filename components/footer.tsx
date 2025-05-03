@@ -70,7 +70,7 @@ export default function Footer() {
                 <Phone className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900">Teléfono:</h4>
-                  <p className="text-gray-600">+51 986 102 632</p>
+                  <p className="text-gray-600">01 739 7599</p>
                 </div>
               </li>
               <li className="flex items-start">
