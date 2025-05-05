@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Facebook, Instagram, Mail, MapPin, Phone, Globe } from "lucide-react"
+import { Facebook, Instagram, Mail, MapPin, Phone, Globe, Linkedin } from "lucide-react"
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -21,6 +21,15 @@ export default function Footer() {
               <Link href="https://www.instagram.com/administracion_de_edificios?igsh=dXBhcDdzcndxcm81" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-green-600 transition-colors">
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
+              </Link>
+              <Link
+                href="https://www.linkedin.com/company/casa-grande-administracion-de-edificios/"
+                aria-label="LinkedIn"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-green-600 transition-colors"
+              >
+                <Linkedin className="h-5 w-5" />
               </Link>
             </div>
           </div>
