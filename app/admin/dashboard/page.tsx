@@ -1,84 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import type { Session } from "@supabase/supabase-js";
 
 export default function Dashboard() {
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<Session | null>(null);
-  const router = useRouter();
-
-  useEffect(() => {
-    // Chequear sesión al montar
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-      if (!session) router.push("/admin/login");
-    });
-
-    // Escuchar cambios de sesión
-
-    
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (!session) router.push("/admin/login");
-    });
-
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, [router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session) return null;
-
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Barra de navegación */}
       <nav className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">Panel de Administración</h1>
-            </div>
-          </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <h1 className="text-xl font-bold">Panel de Administración</h1>
+          {/* ⇢ futuro botón logout */}
         </div>
       </nav>
 
-      {/* Contenido principal */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            ¡Bienvenido al Panel de Administración!
-          </h2>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <section className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold mb-2">¡Bienvenido!</h2>
           <p className="text-gray-600">
-            Desde aquí podrás gestionar todo el contenido del sitio web.
+            Gestiona el contenido de tu sitio: crea, edita o elimina artículos.
           </p>
-        </div>
+        </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Tarjeta de Nuevo Artículo */}
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Link href="/admin/nuevo-articulo" className="block">
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">Nuevo Artículo</h2>
-              <p className="text-gray-600">Crear y publicar un nuevo artículo en el blog</p>
-            </div>
+            <article className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-semibold mb-1">Nuevo artículo</h3>
+              <p className="text-gray-600">Crear y publicar un artículo</p>
+            </article>
           </Link>
-        </div>
-      </div>
+
+          <Link href="/admin/articulos" className="block">
+            <article className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-semibold mb-1">Ver / Editar</h3>
+              <p className="text-gray-600">
+                Lista completa para editar o eliminar entradas
+              </p>
+            </article>
+          </Link>
+        </section>
+      </main>
     </div>
   );
-} 
+}

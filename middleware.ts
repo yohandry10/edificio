@@ -4,24 +4,40 @@ import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
 
-  // Permitir acceso libre al login
-  if (req.nextUrl.pathname === '/admin/login') {
+  const supabase = createMiddlewareClient(
+    { req, res },
+    {
+      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    }
+  );
+
+  if (
+    req.nextUrl.pathname.startsWith("/_next") ||
+    req.nextUrl.pathname === "/favicon.ico"
+  ) {
     return res;
   }
 
-  // Para todas las demás rutas de admin, verificar autenticación
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    return NextResponse.redirect(new URL('/admin/login', req.url));
+  if (req.nextUrl.pathname === "/admin/login") {
+    return res;
+  }
+
+  if (req.nextUrl.pathname.startsWith("/admin")) {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+
+    if (error || !session) {
+      return NextResponse.redirect(new URL("/admin/login", req.url));
+    }
   }
 
   return res;
 }
 
-// Configurar las rutas que deben pasar por el middleware
 export const config = {
-  matcher: ['/admin/:path*']
+  matcher: ["/admin/:path*"],
 };
-
