@@ -1,47 +1,40 @@
-import { notFound } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import {
-  ArrowLeft,
-  Calendar,
-  User,
-  Tag,
-  Share2,
-  Facebook,
-  Twitter,
-  Linkedin,
-} from "lucide-react"
-import ReactMarkdown from "react-markdown"
-import remarkGfm from "remark-gfm"
-import { supabase } from "@/lib/supabase"
-import { MotionDiv, MotionArticle } from "@/components/motion-wrapper"
-import { Badge } from "@/components/ui/badge"
-import { BlogPost, staticBlogPosts } from "@/lib/blogPosts"
+// app/blog/[slug]/page.tsx
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowLeft, Calendar, User } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { supabase } from "@/lib/supabase";
+import { MotionDiv, MotionArticle } from "@/components/motion-wrapper";
+import { Badge } from "@/components/ui/badge";
+import { BlogPost, staticBlogPosts } from "@/lib/blogPosts";
 
-/* Tipo extendido para poder mapear campos opcionales */
 interface CombinedPost extends BlogPost {
-  cover_image?: string | null
-  author_name?: string
-  created_at?: string
+  cover_image?: string | null;
+  author_name?: string;
+  created_at?: string;
 }
 
-/* ----------  SERVER COMPONENT ------------- */
+// --------------------
+// Server Component
+// --------------------
 export default async function BlogPostPage({
   params,
 }: {
-  params: { slug: string }
+  params: { slug: string };
 }) {
-  let post: CombinedPost | null = null
+  let post: CombinedPost | null = null;
 
-  /* 1 · BUSCAR EN SUPABASE ----------------------------------- */
+  // 1 · BUSCAR EL POST EN SUPABASE
   const { data: supa, error } = await supabase
     .from("articulos")
     .select("*")
     .eq("slug", params.slug)
-    .single()
+    .single();
 
   if (error && error.code !== "PGRST116") {
-    console.error("Supabase fetch error:", error)
+    console.error("Supabase fetch error:", error);
   }
 
   if (supa) {
@@ -58,28 +51,62 @@ export default async function BlogPostPage({
         month: "long",
         day: "numeric",
       }),
-      category: typeof supa.category === "string" ? supa.category : "General",
+      category:
+        typeof supa.category === "string" ? supa.category : "General",
       tags: supa.tags ?? [],
       created_at: supa.created_at,
       cover_image: supa.cover_image,
       author_name: supa.author_name,
-    }
+    };
   }
 
-  /* 2 · FALLO -> BUSCAR EN ESTÁTICOS -------------------------- */
+  // 2 · SI NO LO ENCUENTRAS, BUSCAR EN ESTÁTICOS
   if (!post) {
-    post = staticBlogPosts.find((p) => p.slug === params.slug) ?? null
+    post =
+      staticBlogPosts.find((p) => p.slug === params.slug) ?? null;
   }
 
-  /* 3 · 404 SI NO EXISTE ------------------------------------- */
-  if (!post) notFound()
+  // 3 · 404 SI SIGUE SIN EXISTIR
+  if (!post) notFound();
 
-  /* 4 · RELATED (solo de estáticos para simplicidad) ---------- */
-  const related = staticBlogPosts
-    .filter((p) => p.category === post!.category && p.id !== post!.id)
-    .slice(0, 3)
+  // 4 · TRAER RELACIONADOS
+  let related: CombinedPost[] = [];
+  if (supa) {
+    // consultamos la tabla 'articulos' por la misma categoría
+    const { data: relData, error: relError } = await supabase
+      .from("articulos")
+      .select("*")
+      .eq("category", supa.category)
+      .neq("slug", params.slug)
+      .limit(3);
 
-  /* 5 · RENDER ----------------------------------------------- */
+    if (!relError && relData) {
+      related = relData.map((r) => ({
+        id: String(r.id),
+        title: r.title,
+        slug: r.slug,
+        excerpt: r.excerpt ?? "",
+        content: r.content ?? "",
+        image: r.cover_image ?? "/placeholder.svg",
+        author: r.author_name ?? "Casa Grande",
+        date: new Date(r.created_at).toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        category:
+          typeof r.category === "string" ? r.category : "General",
+        tags: r.tags ?? [],
+      }));
+    }
+  } else {
+    // fallback a los estáticos si no vino de Supa
+    related = staticBlogPosts
+      .filter((p) => p.category === post!.category && p.id !== post!.id)
+      .slice(0, 3);
+  }
+
+  // 5 · RENDER
   return (
     <div className="pt-16">
       {/* HERO */}
@@ -142,29 +169,29 @@ export default async function BlogPostPage({
                   {post.content
                     .replace(/^\s*```md\n?/, "")
                     .replace(/\n/g, "\n")
-                    .replace(/```\s*$/, "")
-                  }
+                    .replace(/```\s*$/, "")}
                 </ReactMarkdown>
               </article>
             </MotionArticle>
 
             {/* SIDEBAR */}
             <aside className="w-full lg:w-1/3 space-y-8">
-              {/* RELATED */}
               <div className="bg-white p-6 rounded-xl shadow-md">
                 <h3 className="text-xl font-bold text-gray-900 mb-4">
                   Artículos Relacionados
                 </h3>
-                {related.length ? (
+                {related.length > 0 ? (
                   related.map((r) => (
                     <Link
-                      key={r.id}
+                      key={r.slug}
                       href={`/blog/${r.slug}`}
                       className="flex gap-4 mb-6 group"
                     >
                       <div className="relative w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
                         <Image
-                          src={r.image || "/placeholder.svg?height=100&width=100"}
+                          src={
+                            r.image || "/placeholder.svg?height=100&width=100"
+                          }
                           alt={r.title}
                           fill
                           className="object-contain bg-white"
@@ -187,5 +214,5 @@ export default async function BlogPostPage({
         </div>
       </section>
     </div>
-  )
+  );
 }
