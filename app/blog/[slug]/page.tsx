@@ -1,8 +1,9 @@
 // app/blog/[slug]/page.tsx
+
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Calendar, User } from "lucide-react";
+import { ArrowLeft, Calendar, User, Facebook, Instagram, Linkedin } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { supabase } from "@/lib/supabase";
@@ -16,9 +17,6 @@ interface CombinedPost extends BlogPost {
   created_at?: string;
 }
 
-// --------------------
-// Server Component
-// --------------------
 export default async function BlogPostPage({
   params,
 }: {
@@ -26,7 +24,7 @@ export default async function BlogPostPage({
 }) {
   let post: CombinedPost | null = null;
 
-  // 1 · BUSCAR EL POST EN SUPABASE
+  // 1 · Fetch post from Supabase
   const { data: supa, error } = await supabase
     .from("articulos")
     .select("*")
@@ -38,6 +36,18 @@ export default async function BlogPostPage({
   }
 
   if (supa) {
+    // Parse tags field (string or array)
+    let tagsArr: string[] = [];
+    if (typeof supa.tags === "string") {
+      try {
+        tagsArr = JSON.parse(supa.tags);
+      } catch {
+        tagsArr = supa.tags.split(",").map((t: string) => t.trim());
+      }
+    } else if (Array.isArray(supa.tags)) {
+      tagsArr = supa.tags;
+    }
+
     post = {
       id: String(supa.id),
       title: supa.title,
@@ -53,34 +63,30 @@ export default async function BlogPostPage({
       }),
       category:
         typeof supa.category === "string" ? supa.category : "General",
-      tags: supa.tags ?? [],
+      tags: tagsArr,
       created_at: supa.created_at,
       cover_image: supa.cover_image,
       author_name: supa.author_name,
     };
   }
 
-  // 2 · SI NO LO ENCUENTRAS, BUSCAR EN ESTÁTICOS
+  // 2 · Fallback to static posts
   if (!post) {
-    post =
-      staticBlogPosts.find((p) => p.slug === params.slug) ?? null;
+    post = staticBlogPosts.find((p) => p.slug === params.slug) ?? null;
   }
-
-  // 3 · 404 SI SIGUE SIN EXISTIR
   if (!post) notFound();
 
-  // 4 · TRAER RELACIONADOS
+  // 3 · Fetch related posts by same category
   let related: CombinedPost[] = [];
   if (supa) {
-    // consultamos la tabla 'articulos' por la misma categoría
-    const { data: relData, error: relError } = await supabase
+    const { data: relData } = await supabase
       .from("articulos")
       .select("*")
       .eq("category", supa.category)
       .neq("slug", params.slug)
       .limit(3);
 
-    if (!relError && relData) {
+    if (relData) {
       related = relData.map((r) => ({
         id: String(r.id),
         title: r.title,
@@ -96,30 +102,30 @@ export default async function BlogPostPage({
         }),
         category:
           typeof r.category === "string" ? r.category : "General",
-        tags: r.tags ?? [],
+        tags: Array.isArray(r.tags) ? r.tags : [],
       }));
     }
   } else {
-    // fallback a los estáticos si no vino de Supa
     related = staticBlogPosts
       .filter((p) => p.category === post!.category && p.id !== post!.id)
       .slice(0, 3);
   }
 
-  // 5 · RENDER
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
   return (
     <div className="pt-16">
       {/* HERO */}
       <section className="relative h-[300px] md:h-[400px]">
         <Image
-          src={post.image || "/placeholder.svg?height=800&width=1600"}
+          src={post.image}
           alt={post.title}
           fill
-          className="object-contain bg-white"
+          className="object-cover"
           priority
         />
         <div className="absolute inset-0 bg-black/50 flex items-center">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 text-white">
             <MotionDiv
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -128,14 +134,14 @@ export default async function BlogPostPage({
             >
               <Link
                 href="/blog"
-                className="inline-flex items-center text-white/80 hover:text-white mb-4 transition-colors"
+                className="inline-flex items-center mb-4 text-sm"
               >
-                <ArrowLeft className="mr-2 h-4 w-4" /> Volver al blog
+                <ArrowLeft className="mr-2 h-5 w-5" /> Volver al blog
               </Link>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-2">
                 {post.title}
               </h1>
-              <div className="flex flex-wrap items-center gap-4 text-white/80">
+              <div className="flex flex-wrap items-center gap-4 text-sm opacity-90">
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-1" />
                   {post.date}
@@ -154,9 +160,9 @@ export default async function BlogPostPage({
       </section>
 
       {/* CONTENT + SIDEBAR */}
-      <section className="py-16">
+      <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row gap-12">
+          <div className="flex flex-col lg:flex-row gap-16">
             {/* MAIN */}
             <MotionArticle
               initial={{ opacity: 0, y: 20 }}
@@ -164,20 +170,69 @@ export default async function BlogPostPage({
               transition={{ duration: 0.5, delay: 0.2 }}
               className="w-full lg:w-2/3"
             >
-              <article className="bg-white p-8 rounded-xl shadow-md prose prose-lg max-w-none">
+              <article className="bg-white p-10 rounded-2xl shadow-lg prose prose-lg max-w-none">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {post.content
-                    .replace(/^\s*```md\n?/, "")
-                    .replace(/\n/g, "\n")
-                    .replace(/```\s*$/, "")}
+                  {post.content}
                 </ReactMarkdown>
+
+                {/* TAGS & SHARE */}
+                <div className="mt-12 border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+                  {/* Tags */}
+                  {post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-3 mb-6 md:mb-0">
+                      {post.tags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          className="bg-gray-100 text-gray-800"
+                        >
+                          #{tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Share */}
+                  <div className="flex items-center space-x-4">
+                    <span className="font-medium text-gray-700">Compartir:</span>
+                    <a
+                      href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                        `${baseUrl}/blog/${post.slug}`
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="transition transform hover:scale-110"
+                    >
+                      <Facebook className="h-6 w-6 text-blue-600" />
+                    </a>
+                    <a
+                      href={`https://www.instagram.com/?url=${encodeURIComponent(
+                        `${baseUrl}/blog/${post.slug}`
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="transition transform hover:scale-110"
+                    >
+                      <Instagram className="h-6 w-6 text-pink-500" />
+                    </a>
+                    <a
+                      href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                        `${baseUrl}/blog/${post.slug}`
+                      )}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="transition transform hover:scale-110"
+                    >
+                      <Linkedin className="h-6 w-6 text-blue-700" />
+                    </a>
+                  </div>
+                </div>
               </article>
             </MotionArticle>
 
             {/* SIDEBAR */}
-            <aside className="w-full lg:w-1/3 space-y-8">
-              <div className="bg-white p-6 rounded-xl shadow-md">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">
+            <aside className="w-full lg:w-1/3 space-y-12">
+              <div className="bg-white p-6 rounded-xl shadow">
+                <h3 className="text-2xl font-semibold mb-4">
                   Artículos Relacionados
                 </h3>
                 {related.length > 0 ? (
@@ -187,21 +242,21 @@ export default async function BlogPostPage({
                       href={`/blog/${r.slug}`}
                       className="flex gap-4 mb-6 group"
                     >
-                      <div className="relative w-20 h-20 rounded-md overflow-hidden flex-shrink-0">
+                      <div className="relative w-24 h-24 rounded-lg overflow-hidden">
                         <Image
-                          src={
-                            r.image || "/placeholder.svg?height=100&width=100"
-                          }
+                          src={r.image}
                           alt={r.title}
                           fill
-                          className="object-contain bg-white"
+                          className="object-cover"
                         />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900 group-hover:text-green-600 transition-colors line-clamp-2">
+                        <h4 className="font-medium text-gray-900 group-hover:text-green-600 transition">
                           {r.title}
                         </h4>
-                        <p className="text-sm text-gray-500 mt-1">{r.date}</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {r.date}
+                        </p>
                       </div>
                     </Link>
                   ))
