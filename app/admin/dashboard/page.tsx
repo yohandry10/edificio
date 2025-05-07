@@ -36,6 +36,15 @@ export default function Dashboard() {
               </p>
             </article>
           </Link>
+
+          <Link href="/admin/faqs" className="block">
+            <article className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+              <h3 className="text-xl font-semibold mb-1">Preguntas Frecuentes</h3>
+              <p className="text-gray-600">
+                Gestionar preguntas y respuestas para la página de contacto
+              </p>
+            </article>
+          </Link>
         </section>
       </main>
     </div>

@@ -2,13 +2,22 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { MapPin, Phone, Mail, Globe } from "lucide-react"
+import { supabase } from "@/lib/supabase"
+
+// Tipo para las FAQ
+interface FAQ {
+  id: string
+  question: string
+  answer: string
+  order: number
+}
 
 export default function Contacto() {
   const [formData, setFormData] = useState({
@@ -17,6 +26,59 @@ export default function Contacto() {
     email: "",
     mensaje: "",
   })
+  // Estado para las FAQs dinámicas
+  const [faqs, setFaqs] = useState<FAQ[]>([])
+  const [loadingFaqs, setLoadingFaqs] = useState(true)
+
+  // Cargar las FAQs desde Supabase al cargar la página
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      setLoadingFaqs(true)
+      const { data, error } = await supabase
+        .from("faqs")
+        .select("*")
+        .order("order", { ascending: true })
+
+      if (error) {
+        console.error("Error cargando FAQs:", error)
+        // Si hay error, usar las preguntas por defecto
+        setFaqs(defaultFaqs)
+      } else {
+        setFaqs(data || defaultFaqs)
+      }
+      setLoadingFaqs(false)
+    }
+
+    fetchFAQs()
+  }, [])
+
+  // FAQs por defecto en caso de error o mientras se cargan
+  const defaultFaqs: FAQ[] = [
+    {
+      id: "1",
+      question: "¿Qué servicios de administración de edificios ofrecen?",
+      answer: "Ofrecemos servicios integrales de administración de edificios que incluyen gestión financiera, mantenimiento de áreas comunes, supervisión de personal, asesoría legal y contable, y atención a propietarios y residentes.",
+      order: 1
+    },
+    {
+      id: "2",
+      question: "¿Cómo puedo solicitar una cotización para mi edificio?",
+      answer: "Puede solicitar una cotización completando el formulario de contacto en nuestra página web, llamándonos al teléfono indicado o enviándonos un correo electrónico. Nos pondremos en contacto con usted a la brevedad para coordinar una visita a su edificio y elaborar una propuesta personalizada.",
+      order: 2
+    },
+    {
+      id: "3",
+      question: "¿Cuánto tiempo toma implementar sus servicios en un edificio?",
+      answer: "El tiempo de implementación varía según las características y necesidades específicas de cada edificio, pero generalmente podemos iniciar nuestros servicios en un plazo de 1 a 2 semanas después de la firma del contrato.",
+      order: 3
+    },
+    {
+      id: "4",
+      question: "¿Qué hace que Casa Grande sea diferente de otras empresas de administración?",
+      answer: "Nos distinguimos por nuestra experiencia de más de 14 años en el sector, nuestro enfoque personalizado, la transparencia en nuestra gestión, y nuestro compromiso con la excelencia en el servicio. Además, contamos con un equipo de profesionales altamente capacitados y especializados en administración de edificios.",
+      order: 4
+    },
+  ]
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -241,42 +303,25 @@ export default function Contacto() {
           </div>
 
           <div className="max-w-3xl mx-auto">
-            <div className="space-y-6">
-              {[
-                {
-                  question: "¿Qué servicios de administración de edificios ofrecen?",
-                  answer:
-                    "Ofrecemos servicios integrales de administración de edificios que incluyen gestión financiera, mantenimiento de áreas comunes, supervisión de personal, asesoría legal y contable, y atención a propietarios y residentes.",
-                },
-                {
-                  question: "¿Cómo puedo solicitar una cotización para mi edificio?",
-                  answer:
-                    "Puede solicitar una cotización completando el formulario de contacto en nuestra página web, llamándonos al teléfono indicado o enviándonos un correo electrónico. Nos pondremos en contacto con usted a la brevedad para coordinar una visita a su edificio y elaborar una propuesta personalizada.",
-                },
-                {
-                  question: "¿Cuánto tiempo toma implementar sus servicios en un edificio?",
-                  answer:
-                    "El tiempo de implementación varía según las características y necesidades específicas de cada edificio, pero generalmente podemos iniciar nuestros servicios en un plazo de 1 a 2 semanas después de la firma del contrato.",
-                },
-                {
-                  question: "¿Qué hace que Casa Grande sea diferente de otras empresas de administración?",
-                  answer:
-                    "Nos distinguimos por nuestra experiencia de más de 14 años en el sector, nuestro enfoque personalizado, la transparencia en nuestra gestión, y nuestro compromiso con la excelencia en el servicio. Además, contamos con un equipo de profesionales altamente capacitados y especializados en administración de edificios.",
-                },
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className="bg-white p-6 rounded-lg shadow-md"
-                >
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.question}</h3>
-                  <p className="text-gray-700">{item.answer}</p>
-                </motion.div>
-              ))}
-            </div>
+            {loadingFaqs ? (
+              <p className="text-center text-gray-500">Cargando preguntas frecuentes...</p>
+            ) : (
+              <div className="space-y-6">
+                {faqs.map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                    viewport={{ once: true }}
+                    className="bg-white p-6 rounded-lg shadow-md"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{item.question}</h3>
+                    <p className="text-gray-700">{item.answer}</p>
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
