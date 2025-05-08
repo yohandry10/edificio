@@ -45,6 +45,15 @@ export default function Dashboard() {
               </p>
             </article>
           </Link>
+
+          <Link href="/admin/nueva-faq" className="block">
+            <article className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border-2 border-green-500">
+              <h3 className="text-xl font-semibold mb-1 text-green-600">+ Nueva Pregunta Frecuente</h3>
+              <p className="text-gray-600">
+                Añadir una nueva pregunta y respuesta a la sección de FAQs
+              </p>
+            </article>
+          </Link>
         </section>
       </main>
     </div>
