@@ -86,7 +86,7 @@ export default function Footer() {
                 <Mail className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900">Correo electrónico:</h4>
-                  <p className="text-gray-600">cotizacion@administracionedificosperu.com</p>
+                  <p className="text-gray-600">a_santacruz@administracionedificosperu.com</p>
                 </div>
               </li>
               <li className="flex items-start">

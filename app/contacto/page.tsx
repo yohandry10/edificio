@@ -187,7 +187,7 @@ export default function Contacto() {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-1">Correo electrónico:</h3>
-                    <p className="text-gray-700">cotizacion@administracionedificosperu.com</p>
+                    <p className="text-gray-700">a_santacruz@administracionedificosperu.com</p>
                   </div>
                 </div>
 
