@@ -112,13 +112,14 @@ export default async function BlogPostPage({
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const postUrl = `${baseUrl}/blog/${post.slug}`;
 
   return (
     <div className="pt-16">
       {/* HERO */}
       <section className="relative h-[300px] md:h-[400px]">
         <Image
-          src={post.image}
+          src={post.image || "/placeholder.svg"}
           alt={post.title}
           fill
           className="object-cover"
@@ -178,7 +179,7 @@ export default async function BlogPostPage({
                 {/* TAGS & SHARE */}
                 <div className="mt-12 border-t border-gray-200 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center">
                   {/* Tags */}
-                  {post.tags.length > 0 && (
+                  {post.tags && post.tags.length > 0 && (
                     <div className="flex flex-wrap gap-3 mb-6 md:mb-0">
                       {post.tags.map((tag) => (
                         <Badge
@@ -196,31 +197,34 @@ export default async function BlogPostPage({
                     <span className="font-medium text-gray-700">Compartir:</span>
                     <a
                       href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                        `${baseUrl}/blog/${post.slug}`
+                        postUrl
                       )}`}
                       target="_blank"
                       rel="noreferrer"
                       className="transition transform hover:scale-110"
+                      aria-label="Compartir en Facebook"
                     >
                       <Facebook className="h-6 w-6 text-blue-600" />
                     </a>
                     <a
                       href={`https://www.instagram.com/?url=${encodeURIComponent(
-                        `${baseUrl}/blog/${post.slug}`
+                        postUrl
                       )}`}
                       target="_blank"
                       rel="noreferrer"
                       className="transition transform hover:scale-110"
+                      aria-label="Compartir en Instagram"
                     >
                       <Instagram className="h-6 w-6 text-pink-500" />
                     </a>
                     <a
                       href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-                        `${baseUrl}/blog/${post.slug}`
+                        postUrl
                       )}`}
                       target="_blank"
                       rel="noreferrer"
                       className="transition transform hover:scale-110"
+                      aria-label="Compartir en LinkedIn"
                     >
                       <Linkedin className="h-6 w-6 text-blue-700" />
                     </a>
@@ -244,7 +248,7 @@ export default async function BlogPostPage({
                     >
                       <div className="relative w-24 h-24 rounded-lg overflow-hidden">
                         <Image
-                          src={r.image}
+                          src={r.image || "/placeholder.svg"}
                           alt={r.title}
                           fill
                           className="object-cover"
