@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.administracionedificiosperu.com";
   return {
     title: data.title || "Título por defecto",
     description: data.excerpt || "Descripción por defecto.",

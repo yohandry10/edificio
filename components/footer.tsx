@@ -93,7 +93,7 @@ export default function Footer() {
                 <Globe className="h-5 w-5 text-green-600 mr-2 mt-0.5" />
                 <div>
                   <h4 className="text-sm font-semibold text-gray-900">Web:</h4>
-                  <p className="text-gray-600">administracionedificosperu.com</p>
+                  <p className="text-gray-600">administracionedificiosperu.com</p>
                 </div>
               </li>
             </ul>
