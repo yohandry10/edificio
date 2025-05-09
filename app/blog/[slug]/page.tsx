@@ -1,4 +1,4 @@
-// app/blog/[slug]/page.tsx
+export const dynamic = 'force-dynamic';
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -22,21 +22,20 @@ export default async function BlogPostPage({
 }: {
   params: { slug: string };
 }) {
+  console.log('[BlogPostPage] params:', JSON.stringify(params));
   let post: CombinedPost | null = null;
 
-  // 1 · Fetch post from Supabase
-  const { data: supa, error } = await supabase
+  const { data: supa, error: supaError } = await supabase
     .from("articulos")
     .select("*")
     .eq("slug", params.slug)
     .single();
 
-  if (error && error.code !== "PGRST116") {
-    console.error("Supabase fetch error:", error);
+  if (supaError && supaError.code !== "PGRST116") {
+    console.error(`[BlogPostPage] Supabase fetch error para slug ${params.slug}:`, supaError);
   }
 
   if (supa) {
-    // Parse tags field (string or array)
     let tagsArr: string[] = [];
     if (typeof supa.tags === "string") {
       try {
@@ -47,7 +46,6 @@ export default async function BlogPostPage({
     } else if (Array.isArray(supa.tags)) {
       tagsArr = supa.tags;
     }
-
     post = {
       id: String(supa.id),
       title: supa.title,
@@ -70,24 +68,26 @@ export default async function BlogPostPage({
     };
   }
 
-  // 2 · Fallback to static posts
   if (!post) {
-    post = staticBlogPosts.find((p) => p.slug === params.slug) ?? null;
+    const staticPostData = staticBlogPosts.find((p) => p.slug === params.slug);
+    if (staticPostData) {
+      post = staticPostData;
+    } else {
+      notFound();
+    }
   }
-  if (!post) notFound();
 
-  // 3 · Fetch related posts by same category
   let related: CombinedPost[] = [];
-  if (supa) {
+  if (post && post.category) {
     const { data: relData } = await supabase
       .from("articulos")
       .select("*")
-      .eq("category", supa.category)
+      .eq("category", post.category)
       .neq("slug", params.slug)
       .limit(3);
 
     if (relData) {
-      related = relData.map((r) => ({
+      related = relData.map((r: any) => ({
         id: String(r.id),
         title: r.title,
         slug: r.slug,
@@ -100,15 +100,10 @@ export default async function BlogPostPage({
           month: "long",
           day: "numeric",
         }),
-        category:
-          typeof r.category === "string" ? r.category : "General",
+        category: typeof r.category === "string" ? r.category : "General",
         tags: Array.isArray(r.tags) ? r.tags : [],
       }));
     }
-  } else {
-    related = staticBlogPosts
-      .filter((p) => p.category === post!.category && p.id !== post!.id)
-      .slice(0, 3);
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -181,7 +176,7 @@ export default async function BlogPostPage({
                   {/* Tags */}
                   {post.tags && post.tags.length > 0 && (
                     <div className="flex flex-wrap gap-3 mb-6 md:mb-0">
-                      {post.tags.map((tag) => (
+                      {post.tags.map((tag: string) => (
                         <Badge
                           key={tag}
                           className="bg-gray-100 text-gray-800"
