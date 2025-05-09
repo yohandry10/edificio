@@ -86,12 +86,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       publishedTime: post.created_at ? new Date(post.created_at).toISOString() : new Date().toISOString(), 
       authors: [post.author], 
     },
+    /* Metadatos de Twitter eliminados
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: [logoUrl], // Usar siempre la URL del logo
-    },
+      images: [logoUrl], 
+    },*/
     alternates: {
       canonical: `${baseUrl}/blog/${post.slug}`,
     },
