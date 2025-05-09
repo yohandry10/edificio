@@ -17,12 +17,11 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  let postData: any = null; // Usar 'any' temporalmente o un tipo más específico
+  let postData: any = null;
 
-  // 1. Fetch post from Supabase
   const { data: supaPost, error: supaError } = await supabase
     .from("articulos")
-    .select("*")
+    .select("title, excerpt, slug, created_at, author_name") // Seleccionar solo campos necesarios para metadatos
     .eq("slug", params.slug)
     .single();
 
@@ -33,10 +32,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (supaPost) {
     postData = supaPost;
   } else {
-    // 2. Fallback to static posts if not found in Supabase
     const staticPost = staticBlogPosts.find((p) => p.slug === params.slug);
     if (staticPost) {
-      postData = staticPost;
+      // Adaptar campos de staticPost si es necesario
+      postData = { 
+        title: staticPost.title,
+        excerpt: staticPost.excerpt,
+        slug: staticPost.slug,
+        created_at: staticPost.date, // Asumiendo que staticPost.date es compatible con ISOString o new Date()
+        author_name: staticPost.author
+      };
     }
   }
 
@@ -47,40 +52,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  // Adaptar postData a la estructura esperada por PostForMetadata si es necesario
-  // Aquí asumimos que postData ya tiene title, excerpt, slug, cover_image/image, created_at
-  const post: PostForMetadata = {
-    id: String(postData.id),
+  const post: Pick<PostForMetadata, 'title' | 'excerpt' | 'slug' | 'created_at' | 'author'> = {
     title: postData.title || "Título no disponible",
     slug: postData.slug || params.slug,
     excerpt: postData.excerpt || "Descripción no disponible.",
-    content: postData.content || "",
-    // Usar cover_image de Supabase o image de staticBlogPosts
-    image: postData.cover_image || postData.image || "/placeholder.svg", 
-    author: postData.author_name || postData.author || "Casa Grande",
-    date: postData.created_at ? new Date(postData.created_at).toLocaleDateString("es-ES") : new Date().toLocaleDateString("es-ES"),
-    category: postData.category || "General",
-    tags: Array.isArray(postData.tags) ? postData.tags : (typeof postData.tags === 'string' ? postData.tags.split(',').map((t: string) => t.trim()) : []),
-    created_at: postData.created_at, // Necesario para openGraph publishedTime
+    created_at: postData.created_at, 
+    author: postData.author_name || "Casa Grande",
   };
   
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   
-  // Construir la URL de la imagen de forma segura
-  let imageUrl = "/placeholder.svg"; // Imagen por defecto
-  if (post.image) {
-    if (post.image.startsWith("http")) {
-      imageUrl = post.image;
-    } else {
-      // Asegurarse de que no haya doble slash si post.image ya empieza con /
-      imageUrl = `${baseUrl}${post.image.startsWith('/') ? post.image : '/' + post.image}`;
-    }
-  }
-  // Si después de todo, la imagen es solo placeholder.svg, asegurar que sea absoluta
-   if (imageUrl.endsWith("placeholder.svg") && !imageUrl.startsWith("http")) {
-    imageUrl = `${baseUrl}/placeholder.svg`;
-  }
-
+  // URL fija para el logo de la empresa
+  const logoUrl = `${baseUrl}/casagrande.webp`; //Asegúrate que casagrande.webp esté en la carpeta public
 
   return {
     title: post.title,
@@ -89,18 +72,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.excerpt,
       url: `${baseUrl}/blog/${post.slug}`,
-      siteName: "Casa Grande Administración de Edificios", // Nombre del sitio más completo
+      siteName: "Casa Grande Administración de Edificios", 
       images: [
         {
-          url: imageUrl,
-          width: 1200,
-          height: 630,
-          alt: post.title,
+          url: logoUrl, // Usar siempre la URL del logo
+          width: 1200, // Ajusta las dimensiones si tu logo es diferente
+          height: 630, // y quieres mantener la proporción
+          alt: "Casa Grande Administración de Edificios Logo",
         },
       ],
       locale: "es_ES",
       type: "article",
-      // Asegúrate que post.created_at es una fecha válida o string ISO
       publishedTime: post.created_at ? new Date(post.created_at).toISOString() : new Date().toISOString(), 
       authors: [post.author], 
     },
@@ -108,9 +90,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
-      images: [imageUrl], 
-      // site: "@tuTwitterHandle", // Opcional: tu handle de Twitter
-      // creator: "@autorTwitterHandle", // Opcional: handle del autor si lo tienes
+      images: [logoUrl], // Usar siempre la URL del logo
     },
     alternates: {
       canonical: `${baseUrl}/blog/${post.slug}`,
