@@ -29,7 +29,17 @@ export const metadata: Metadata = {
   title: "Casa Grande | Administración de Edificios",
   description:
     "Somos CASA GRANDE, nuestro propósito es garantizar el bienestar y seguridad en la convivencia de los residentes.",
-  // generator: 'v0.dev' // Optional
+  icons: {
+    icon: [
+      { url: '/casagrande.webp', sizes: '32x32', type: 'image/webp' },
+      { url: '/casagrande.webp', sizes: '16x16', type: 'image/webp' }
+    ],
+    apple: [
+      { url: '/casagrande.webp', sizes: '180x180', type: 'image/webp' }
+    ],
+    shortcut: '/casagrande.webp'
+  },
+  manifest: '/site.webmanifest'
 }
 
 export default function RootLayout({

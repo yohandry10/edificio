@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { MapPin, Phone, Mail, Globe } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import Confetti from 'react-confetti'
 
 // Tipo para las FAQ
 interface FAQ {
@@ -52,6 +53,24 @@ export default function Contacto() {
     fetchFAQs()
   }, [])
 
+  // Configurar tamaño de ventana para el confetti
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    // Configurar tamaño inicial
+    handleResize()
+
+    // Escuchar cambios de tamaño
+    window.addEventListener('resize', handleResize)
+
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   // FAQs por defecto en caso de error o mientras se cargan
   const defaultFaqs: FAQ[] = [
     {
@@ -85,21 +104,90 @@ export default function Contacto() {
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitMessage, setSubmitMessage] = useState("")
+  const [submitError, setSubmitError] = useState("")
+  const [showConfetti, setShowConfetti] = useState(false)
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log(formData)
-    alert("Mensaje enviado con éxito. Nos pondremos en contacto contigo pronto.")
-    setFormData({
-      nombre: "",
-      apellido: "",
-      email: "",
-      mensaje: "",
-    })
+    console.log('🎯 Frontend: Iniciando envío directo con EmailJS');
+    console.log('📋 Frontend: Datos del formulario:', formData);
+    
+    setIsSubmitting(true)
+    setSubmitMessage("")
+    setSubmitError("")
+    
+    try {
+      console.log('🚀 Frontend: Enviando directo a EmailJS API');
+      
+      const templateParams = {
+        from_name: `${formData.nombre} ${formData.apellido}`,
+        reply_to: formData.email,
+        message: formData.mensaje,
+        to_email: 'a_santacruz@administracionedificiosperu.com'
+      };
+      
+      console.log('📧 Frontend: Template params:', templateParams);
+      
+      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          service_id: 'service_4aqwsqn',
+          template_id: 'template_pgyoqbh',
+          user_id: 's_a_4T58nr6PSUWfW',
+          template_params: templateParams
+        })
+      });
+
+      console.log('📡 Frontend: Response de EmailJS, status:', response.status);
+
+      if (response.ok) {
+        console.log('✅ Frontend: Correo enviado exitosamente!');
+        setSubmitMessage('Mensaje enviado correctamente. Nos pondremos en contacto contigo pronto.')
+        setShowConfetti(true)
+        setFormData({
+          nombre: "",
+          apellido: "",
+          email: "",
+          mensaje: "",
+        })
+        
+        // Ocultar confetti después de 5 segundos
+        setTimeout(() => {
+          setShowConfetti(false)
+        }, 5000)
+      } else {
+        const errorText = await response.text();
+        console.log('❌ Frontend: Error de EmailJS:', errorText);
+        setSubmitError('Error al enviar el mensaje. Por favor, intenta nuevamente.')
+      }
+    } catch (error) {
+      console.error('❌ Frontend: Error de conexión:', error);
+      setSubmitError('Error de conexión. Por favor, intenta nuevamente.')
+    } finally {
+      console.log('🏁 Frontend: Proceso terminado');
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <div className="pt-16">
+      {/* Confetti de celebración */}
+      {showConfetti && (
+        <Confetti
+          width={windowSize.width}
+          height={windowSize.height}
+          recycle={false}
+          numberOfPieces={300}
+          gravity={0.1}
+          colors={['#16a34a', '#22c55e', '#4ade80', '#86efac', '#bbf7d0', '#f0fdf4']}
+        />
+      )}
       {/* Hero Section */}
       <section className="relative h-[300px] sm:h-[350px] md:h-[400px] lg:h-[500px]">
         <Image 
@@ -222,6 +310,18 @@ export default function Contacto() {
               onSubmit={handleSubmit}
               className="bg-white p-8 rounded-xl shadow-lg"
             >
+              {/* Mensajes de éxito y error */}
+              {submitMessage && (
+                <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                  <p className="text-sm">{submitMessage}</p>
+                </div>
+              )}
+              
+              {submitError && (
+                <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                  <p className="text-sm">{submitError}</p>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
@@ -283,8 +383,13 @@ export default function Contacto() {
               </div>
 
               <div className="text-center">
-                <Button type="submit" size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                  Enviar Mensaje
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  disabled={isSubmitting}
+                  className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Enviando mensaje..." : "Enviar Mensaje"}
                 </Button>
               </div>
             </motion.form>
