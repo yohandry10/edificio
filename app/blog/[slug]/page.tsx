@@ -7,9 +7,18 @@ import remarkGfm from "remark-gfm";
 import { supabase } from "@/lib/supabase";
 import { MotionDiv, MotionArticle } from "@/components/motion-wrapper";
 import { Badge } from "@/components/ui/badge";
-import { BlogPost, staticBlogPosts } from "@/lib/blogPosts";
 
-interface CombinedPost extends BlogPost {
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  image: string;
+  author: string;
+  date: string;
+  category: string;
+  tags: string[];
   cover_image?: string | null;
   author_name?: string;
   created_at?: string;
@@ -17,9 +26,6 @@ interface CombinedPost extends BlogPost {
 
 // Pre-generar páginas solo para posts dinámicos de Supabase
 export async function generateStaticParams() {
-  const paths: { slug: string }[] = [];
-
-  // Solo agregar paths de posts dinámicos de Supabase
   try {
     const { data: articles } = await supabase
       .from('articulos')
@@ -27,15 +33,15 @@ export async function generateStaticParams() {
       .eq('published', true);
     
     if (articles) {
-      articles.forEach((article) => {
-        paths.push({ slug: article.slug });
-      });
+      return articles.map((article) => ({
+        slug: article.slug,
+      }));
     }
   } catch (error) {
     console.error('Error fetching articles for generateStaticParams:', error);
   }
 
-  return paths;
+  return [];
 }
 
 export default async function BlogPostPage({
@@ -43,17 +49,18 @@ export default async function BlogPostPage({
 }: {
   params: { slug: string };
 }) {
-  console.log('[BlogPostPage] params:', JSON.stringify(params));
-  let post: CombinedPost | null = null;
+  const { slug } = await params;
+  console.log('[BlogPostPage] params:', JSON.stringify({ slug }));
+  let post: BlogPost | null = null;
 
   const { data: supa, error: supaError } = await supabase
     .from("articulos")
     .select("*")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (supaError && supaError.code !== "PGRST116") {
-    console.error(`[BlogPostPage] Supabase fetch error para slug ${params.slug}:`, supaError);
+    console.error(`[BlogPostPage] Supabase fetch error para slug ${slug}:`, supaError);
   }
 
   if (supa) {
@@ -90,17 +97,17 @@ export default async function BlogPostPage({
   }
 
   if (!post) {
-    console.log(`[BlogPostPage] No se encontró post para slug: ${params.slug}`);
+    console.log(`[BlogPostPage] No se encontró post para slug: ${slug}`);
     notFound();
   }
 
-  let related: CombinedPost[] = [];
+  let related: BlogPost[] = [];
   if (post && post.category) {
     const { data: relData } = await supabase
       .from("articulos")
       .select("*")
       .eq("category", post.category)
-      .neq("slug", params.slug)
+      .neq("slug", slug)
       .limit(3);
 
     if (relData) {

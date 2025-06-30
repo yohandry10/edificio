@@ -7,35 +7,38 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  console.log(`[SimpleLayout.generateMetadata] Intentando metadatos para slug: ${params.slug}`);
+  const { slug } = await params;
+  console.log(`[SimpleLayout.generateMetadata] Intentando metadatos para slug: ${slug}`);
   const { data, error } = await supabase
     .from("articulos")
     .select("title, excerpt")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (error || !data) {
-    console.error(`[SimpleLayout.generateMetadata] Error o no data para slug ${params.slug}:`, error);
+    console.error(`[SimpleLayout.generateMetadata] Error o sin data para slug ${slug}:`, error);
     return {
       title: "Artículo no encontrado",
+      description: "El artículo solicitado no se encuentra disponible.",
     };
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.administracionedificiosperu.com";
+  const baseUrl = "https://www.administracionedificiosperu.com";
+
   return {
     title: data.title || "Título por defecto",
     description: data.excerpt || "Descripción por defecto.",
     openGraph: {
       title: data.title || "Título por defecto",
       description: data.excerpt || "Descripción por defecto.",
-      url: `${baseUrl}/blog/${params.slug}`,
+      url: `${baseUrl}/blog/${slug}`,
       images: [`${baseUrl}/casagrande.webp`], // Siempre el logo
       siteName: "Casa Grande Administración de Edificios",
       locale: "es_ES",
       type: "article",
     },
     alternates: {
-      canonical: `${baseUrl}/blog/${params.slug}`,
+      canonical: `${baseUrl}/blog/${slug}`,
     }
   };
 }
