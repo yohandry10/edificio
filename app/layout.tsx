@@ -33,6 +33,10 @@ export const metadata: Metadata = {
   authors: [{ name: "Casa Grande" }],
   creator: "Casa Grande",
   publisher: "Casa Grande",
+  metadataBase: new URL('https://www.administracionedificiosperu.com'),
+  alternates: {
+    canonical: 'https://www.administracionedificiosperu.com',
+  },
   icons: {
     icon: [
       { url: '/casagrande.webp', sizes: '32x32', type: 'image/webp' },

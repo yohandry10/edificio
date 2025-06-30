@@ -11,24 +11,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/nuestros-servicios',
     '/blog',
     '/contacto',
-    '/ruido-molesto-en-edificios',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString(),
   }));
 
-  // 2. URLs dinámicas (del blog)
+  // 2. URLs dinámicas (del blog - solo Supabase)
   const { data: articles, error } = await supabase
     .from('articulos')
-    .select('slug, updated_at');
+    .select('slug, created_at')
+    .eq('published', true);
   
   if (error) {
     console.error("Error fetching articles for sitemap:", error);
   }
 
-  const blogRoutes = articles?.map(({ slug, updated_at }) => ({
+  const blogRoutes = articles?.map(({ slug, created_at }) => ({
     url: `${baseUrl}/blog/${slug}`,
-    lastModified: updated_at || new Date().toISOString(),
+    lastModified: created_at || new Date().toISOString(),
   })) ?? [];
 
   return [...staticRoutes, ...blogRoutes];

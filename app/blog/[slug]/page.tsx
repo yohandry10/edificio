@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,6 +13,29 @@ interface CombinedPost extends BlogPost {
   cover_image?: string | null;
   author_name?: string;
   created_at?: string;
+}
+
+// Pre-generar páginas solo para posts dinámicos de Supabase
+export async function generateStaticParams() {
+  const paths: { slug: string }[] = [];
+
+  // Solo agregar paths de posts dinámicos de Supabase
+  try {
+    const { data: articles } = await supabase
+      .from('articulos')
+      .select('slug')
+      .eq('published', true);
+    
+    if (articles) {
+      articles.forEach((article) => {
+        paths.push({ slug: article.slug });
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching articles for generateStaticParams:', error);
+  }
+
+  return paths;
 }
 
 export default async function BlogPostPage({
@@ -69,12 +90,8 @@ export default async function BlogPostPage({
   }
 
   if (!post) {
-    const staticPostData = staticBlogPosts.find((p) => p.slug === params.slug);
-    if (staticPostData) {
-      post = staticPostData;
-    } else {
-      notFound();
-    }
+    console.log(`[BlogPostPage] No se encontró post para slug: ${params.slug}`);
+    notFound();
   }
 
   let related: CombinedPost[] = [];
