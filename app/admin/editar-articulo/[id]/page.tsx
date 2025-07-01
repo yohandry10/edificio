@@ -25,8 +25,33 @@ export default function EditarArticulo() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    await updateArticle(id!, post);
-    router.push("/admin/articulos");
+    try {
+      console.log("🔍 Datos completos del post:", post);
+      
+      // Preparar solo los campos que queremos actualizar
+      const updateData = {
+        title: post.title,
+        excerpt: post.excerpt || '',
+        content: post.content,
+        category: post.category || 'General',
+        tags: Array.isArray(post.tags) ? post.tags : [],
+        cover_image: post.cover_image || null,
+      };
+      
+      console.log("🔍 Datos específicos a actualizar:", updateData);
+      console.log("🔍 ID del artículo:", id);
+      
+      await updateArticle(id!, updateData);
+      
+      console.log("✅ Artículo guardado exitosamente");
+      alert("Artículo guardado correctamente");
+      router.push("/admin/articulos");
+    } catch (error) {
+      console.error("❌ Error al guardar:", error);
+      alert("Error al guardar el artículo: " + (error as Error).message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {

@@ -1,24 +1,48 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 
 export default function LogoutButton() {
   const router = useRouter();
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Limpiar cualquier estado local si es necesario
-      localStorage.removeItem('user');
+      // Llamar a la API route de logout
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      // Limpiar localStorage como medida adicional
+      if (typeof window !== 'undefined') {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key);
+          }
+        });
+        localStorage.removeItem('user');
+      }
       
       // Redirigir al login
       router.push("/admin/login");
-      router.refresh(); // Forzar actualización de la página
+      
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.error('Error during logout:', error);
+      
+      // Limpiar localStorage incluso si hay error
+      if (typeof window !== 'undefined') {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') || key.includes('supabase')) {
+            localStorage.removeItem(key);
+          }
+        });
+        localStorage.removeItem('user');
+      }
+      
+      // Forzar redirección
+      router.push("/admin/login");
     }
   };
 

@@ -8,17 +8,54 @@ import Preloader from '@/components/preloader';
 import { AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname, useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export default function LayoutClientWrapper({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const checkAuth = async () => {
+      // Solo verificar en rutas admin
+      if (pathname?.startsWith('/admin') && pathname !== '/admin/login') {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (!session) {
+            router.push('/admin/login');
+            return;
+          }
+          
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Error checking auth:', error);
+          router.push('/admin/login');
+          return;
+        }
+      } else {
+        setIsAuthenticated(true);
+      }
+      
       setIsLoading(false);
-    }, 2000); // Preloader duration
+    };
 
-    return () => clearTimeout(timer);
-  }, []);
+    checkAuth();
+  }, [pathname, router]);
+
+  // Mostrar loading en rutas admin mientras verifica
+  if (isLoading && pathname?.startsWith('/admin') && pathname !== '/admin/login') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Verificando acceso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>

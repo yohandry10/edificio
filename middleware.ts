@@ -4,34 +4,19 @@ import type { NextRequest } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
 
-  const supabase = createMiddlewareClient(
-    { req, res },
-    {
-      supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    }
-  );
+  // Verificar si la ruta requiere autenticación
+  const isAdminRoute = req.nextUrl.pathname.startsWith('/admin') && 
+                      !req.nextUrl.pathname.startsWith('/admin/login');
 
-  if (
-    req.nextUrl.pathname.startsWith("/_next") ||
-    req.nextUrl.pathname === "/favicon.ico"
-  ) {
-    return res;
-  }
-
-  if (req.nextUrl.pathname === "/admin/login") {
-    return res;
-  }
-
-  if (req.nextUrl.pathname.startsWith("/admin")) {
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error || !session) {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+  if (isAdminRoute) {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      // Redirigir al login si no hay sesión
+      const redirectUrl = new URL('/admin/login', req.url);
+      return NextResponse.redirect(redirectUrl);
     }
   }
 
@@ -39,5 +24,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    '/admin/:path*'
+  ],
 };

@@ -27,13 +27,8 @@ export default function Home() {
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session) {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-
-          setIsAdmin(profileData?.role === 'admin');
+          // Solo verificamos si hay una sesión activa (único usuario admin)
+          setIsAdmin(!!session);
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
