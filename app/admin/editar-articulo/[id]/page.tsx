@@ -6,42 +6,83 @@ import { supabase } from "@/lib/supabase";
 import { updateArticle, deleteArticle } from "@/lib/articles";
 
 export default function EditarArticulo() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const [post, setPost] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    supabase
-      .from("articulos")
-      .select("*")
-      .eq("id", id!)
-      .single()
-      .then(({ data }) => setPost(data));
+    if (!id) return;
+    
+    const loadArticle = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("articulos")
+          .select("*")
+          .eq("id", id)
+          .single();
+          
+        if (error) {
+          console.error("Error loading article:", error);
+          alert("Error al cargar el artículo");
+          return;
+        }
+        
+        console.log("📄 Artículo cargado:", data);
+        setPost(data);
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Error al cargar el artículo");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadArticle();
   }, [id]);
 
-  if (!post) return <p className="p-8">Cargando…</p>;
+  if (loading) return <p className="p-8">Cargando…</p>;
+  if (!post) return <p className="p-8">Artículo no encontrado</p>;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!id) {
+      alert("Error: ID del artículo no válido");
+      return;
+    }
+    
     setSaving(true);
     try {
+      console.log("🔍 Guardando artículo con ID:", id);
       console.log("🔍 Datos completos del post:", post);
       
-      // Preparar solo los campos que queremos actualizar
+      // Preparar los datos para la actualización
       const updateData = {
-        title: post.title,
-        excerpt: post.excerpt || '',
-        content: post.content,
+        title: post.title?.trim() || '',
+        excerpt: post.excerpt?.trim() || '',
+        content: post.content?.trim() || '',
         category: post.category || 'General',
-        tags: Array.isArray(post.tags) ? post.tags : [],
-        cover_image: post.cover_image || null,
+        tags: Array.isArray(post.tags) ? post.tags.filter((tag: string) => tag.trim()) : [],
+        cover_image: post.cover_image?.trim() || null,
       };
       
-      console.log("🔍 Datos específicos a actualizar:", updateData);
-      console.log("🔍 ID del artículo:", id);
+      console.log("🔍 Datos a actualizar:", updateData);
       
-      await updateArticle(id!, updateData);
+      // Validar datos obligatorios
+      if (!updateData.title) {
+        alert("El título es obligatorio");
+        return;
+      }
+      
+      if (!updateData.content) {
+        alert("El contenido es obligatorio");
+        return;
+      }
+      
+      await updateArticle(id as string, updateData);
       
       console.log("✅ Artículo guardado exitosamente");
       alert("Artículo guardado correctamente");
@@ -55,9 +96,21 @@ export default function EditarArticulo() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("¿Eliminar definitivamente?")) return;
-    await deleteArticle(id!);
-    router.push("/admin/articulos");
+    if (!confirm("¿Estás seguro de que quieres eliminar este artículo? Esta acción no se puede deshacer.")) return;
+    
+    if (!id) {
+      alert("Error: ID del artículo no válido");
+      return;
+    }
+    
+    try {
+      await deleteArticle(id as string);
+      alert("Artículo eliminado correctamente");
+      router.push("/admin/articulos");
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+      alert("Error al eliminar el artículo");
+    }
   };
 
   return (
@@ -71,13 +124,16 @@ export default function EditarArticulo() {
         {/* Título */}
         <div>
           <label htmlFor="title" className="block mb-1 font-medium">
-            Título
+            Título *
           </label>
           <input
             id="title"
-            value={post.title}
+            type="text"
+            required
+            value={post.title || ''}
             onChange={(e) => setPost({ ...post, title: e.target.value })}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            placeholder="Título del artículo"
           />
         </div>
 
@@ -88,28 +144,31 @@ export default function EditarArticulo() {
           </label>
           <textarea
             id="excerpt"
-            value={post.excerpt ?? ""}
+            value={post.excerpt || ''}
             onChange={(e) =>
               setPost({ ...post, excerpt: e.target.value })
             }
             rows={3}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            placeholder="Breve descripción del artículo"
           />
         </div>
 
         {/* Contenido */}
         <div>
           <label htmlFor="content" className="block mb-1 font-medium">
-            Contenido
+            Contenido *
           </label>
           <textarea
             id="content"
-            value={post.content}
+            required
+            value={post.content || ''}
             onChange={(e) =>
               setPost({ ...post, content: e.target.value })
             }
             rows={10}
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            placeholder="Contenido completo del artículo"
           />
         </div>
 
@@ -120,11 +179,11 @@ export default function EditarArticulo() {
           </label>
           <select
             id="category"
-            value={post.category}
+            value={post.category || 'General'}
             onChange={(e) =>
               setPost({ ...post, category: e.target.value })
             }
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
           >
             <option value="General">General</option>
             <option value="Mantenimiento">Mantenimiento</option>
@@ -145,8 +204,9 @@ export default function EditarArticulo() {
           </label>
           <input
             id="tags"
+            type="text"
             value={
-              Array.isArray(post.tags) ? post.tags.join(", ") : post.tags || ""
+              Array.isArray(post.tags) ? post.tags.join(", ") : (post.tags || "")
             }
             onChange={(e) =>
               setPost({
@@ -157,7 +217,8 @@ export default function EditarArticulo() {
                   .filter((t) => t),
               })
             }
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            placeholder="administración, edificios, propietarios"
           />
         </div>
 
@@ -168,11 +229,13 @@ export default function EditarArticulo() {
           </label>
           <input
             id="cover_image"
+            type="url"
             value={post.cover_image || ""}
             onChange={(e) =>
               setPost({ ...post, cover_image: e.target.value })
             }
-            className="w-full border rounded px-3 py-2"
+            className="w-full border rounded px-3 py-2 focus:outline-none focus:border-blue-500"
+            placeholder="https://ejemplo.com/imagen.jpg"
           />
         </div>
 
@@ -181,15 +244,17 @@ export default function EditarArticulo() {
           <button
             type="button"
             onClick={handleDelete}
-            className="text-red-600 hover:underline"
+            className="text-red-600 hover:bg-red-50 px-4 py-2 rounded transition-colors"
           >
             Eliminar artículo
           </button>
           <button
             type="submit"
             disabled={saving}
-            className={`px-4 py-2 rounded text-white ${
-              saving ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"
+            className={`px-6 py-2 rounded text-white font-medium transition-colors ${
+              saving 
+                ? "bg-gray-400 cursor-not-allowed" 
+                : "bg-green-600 hover:bg-green-700"
             }`}
           >
             {saving ? "Guardando…" : "Guardar cambios"}

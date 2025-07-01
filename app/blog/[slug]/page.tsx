@@ -24,6 +24,9 @@ interface BlogPost {
   created_at?: string;
 }
 
+// Revalidar cada 60 segundos para mostrar cambios actualizados
+export const revalidate = 60;
+
 // Pre-generar páginas solo para posts dinámicos de Supabase
 export async function generateStaticParams() {
   try {
