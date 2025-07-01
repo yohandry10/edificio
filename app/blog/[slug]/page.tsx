@@ -24,28 +24,9 @@ interface BlogPost {
   created_at?: string;
 }
 
-// Revalidar cada 60 segundos para mostrar cambios actualizados
-export const revalidate = 60;
-
-// Pre-generar páginas solo para posts dinámicos de Supabase
-export async function generateStaticParams() {
-  try {
-    const { data: articles } = await supabase
-      .from('articulos')
-      .select('slug')
-      .eq('published', true);
-    
-    if (articles) {
-      return articles.map((article) => ({
-        slug: article.slug,
-      }));
-    }
-  } catch (error) {
-    console.error('Error fetching articles for generateStaticParams:', error);
-  }
-
-  return [];
-}
+// Hacer la página completamente dinámica para cambios inmediatos
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function BlogPostPage({
   params,
